@@ -49,7 +49,7 @@ ignore_import_check = false
 extra_args = ["--no-cache-dir"]
 
 
-modules = ["dotenv", "google.protobuf"]
+modules = ["dotenv", "google.protobuf", "protobuf"]
 
 [[test]]
 # Extra dependencies only to be used during test run
