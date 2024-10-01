@@ -1,20 +1,19 @@
-from datetime import datetime
-import glob
+import inspect
 import os
 import sys
 import time
+from datetime import datetime
+
 import grpc
 from dotenv import load_dotenv
-from grpc import RpcError
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.json_format import MessageToJson
-import inspect
-import numpy as np
+from grpc import RpcError
+from PIL import Image
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../modules"))
-import VirtualCameraAPI_pb2_grpc as VirtualCameraAPI_pb2_grpc
-import VirtualCameraAPI_pb2 as VirtualCameraAPI
-from PIL import Image
+import VirtualCameraAPI_pb2 as VirtualCameraAPI  # type: ignore # noqa
+import VirtualCameraAPI_pb2_grpc as VirtualCameraAPI_pb2_grpc  # type: ignore # noqa
 
 # CAMERA_RESOLUTION = (800, 600)
 CAMERA_RESOLUTION = (2592, 1944)
@@ -26,16 +25,16 @@ class VirtualCameraClient:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
         )
         load_dotenv(env_path)
-        self.service_ip = os.getenv("DEV_IP")
+        self._server_ip = os.getenv("VIRTUAL_CAMERA_SERVER_IP")
 
         MAX_MESSAGE_LENGTH = 20 * 1024 * 1024
         self.channel = grpc.insecure_channel(
-            f"{self.service_ip}:9701",
+            f"{self._server_ip}:9701",
             options=[
                 ("grpc.max_send_message_length", MAX_MESSAGE_LENGTH),
                 ("grpc.max_receive_message_length", MAX_MESSAGE_LENGTH),
             ],
-        )  # (f"{self.service_ip}:9701")
+        )  # (f"{self._server_ip}:9701")
         self.stub = VirtualCameraAPI_pb2_grpc.VirtualCameraApiStub(self.channel)
         self._current_script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -107,6 +106,7 @@ class VirtualCameraClient:
         print(f"request:\n{self.format_message(request)}")
 
         try:
+
             response = self.stub.getGrabImageData(request)
             # print(f"response:\n{self.format_message(response)}")
 
@@ -116,7 +116,6 @@ class VirtualCameraClient:
             image = Image.frombytes(
                 mode="RGBA", size=CAMERA_RESOLUTION, data=image_bytes
             )
-            # image.show()
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
             image_name = f"{serialNumber}_{timestamp}.png"
@@ -133,16 +132,15 @@ class VirtualCameraClient:
         print(f"request:\n{self.format_message(request)}")
 
         try:
+            start_time = time.time()
             response = self.stub.getGrabImageData(request)
-            # print(f"response:\n{self.format_message(response)}")
-
-            # TEST: show Image
             image_bytes = response.EncodeString
-
             image = Image.frombytes(
                 mode="RGBA", size=CAMERA_RESOLUTION, data=image_bytes
             )
-
+            end_time = time.time()
+            time_elapsed = end_time - start_time
+            print(f"Execution time: {time_elapsed:.4f} seconds")
             return image
 
         except RpcError as e:
@@ -322,57 +320,25 @@ class VirtualCameraClient:
 # Example usage:
 if __name__ == "__main__":
     client = VirtualCameraClient()
+    test_camera = "robot_01_tm12_camera"
     try:
         client.loadCameraList()
-        # # client.connectCamera("world_camera")
-        # # client.reconnectCamera("world_camera")
-        # # client.disconnectCamera("world_camera")
-        # client.getGrabImageData("world_camera")
-        # client.getGrabImageData("world_camera")
-        # client.getGrabImageData("world_camera")
-
-        # client.setShutterTime("robot_01_tm12_camera", 365.0)
-        # client.setWhiteBalance("robot_01_tm12_camera", 0.2, 0.3, 0.5)
-        # # client.setFocus("vc_camera_02", 10)
-        # client.getGrabImageData("robot_01_tm12_camera")
-        # client.getGrabImageData("robot_01_tm12_camera")
-        # client.getGrabImageData("robot_01_tm12_camera")
-
-        # client.getImageSize("world_camera")
-        # client.setShutterTime("world_camera", 365.0)
-        # client.getShutterTime("world_camera")
-        # client.setShutterTimeAutoOnce("world_camera")
-        # client.getGain("world_camera")
-        # client.setGain("world_camera", 20.0)
-        # client.setGainAutoOnce("world_camera")
-        # client.setWhiteBalance("world_camera", 0.2, 0.3, 0.5)
-        # client.getWhiteBalance("world_camera")
-        # client.setFocus("world_camera", 100)
-        # client.setWhiteBalanceAutoOnce("world_camera")
-        # client.setFocusAutoOnce("world_camera")
-        # client.getFocus("world_camera")
-
-        # for i in np.arange(0, 100, 0.1):
-        #     client.setFocus("world_camera", i)
-        # tmp_path = os.path.join(os.path.dirname(__file__), "tmp")
-        # png_files = glob.glob(os.path.join(tmp_path, "*.png"))
-        # for file_path in png_files:
-        #     os.remove(file_path)
-
-        # for i in np.arange(0, 100, 1):
-        #     print(f"No.: {i}")
-        #     client.getGrabImageData("robot_01_tm12_camera")
-
-        # client.setFocus("world_camera", 1)
-        # time.sleep(0.1)
-        # client.setFocus("world_camera", 10)
-        # time.sleep(0.1)
-        # client.setFocus("world_camera", 50)
-        # time.sleep(0.1)
-        # client.setFocus("world_camera", 1)
-
-        # time.sleep(3)
-        # client.getFocus("world_camera")
+        client.connectCamera(test_camera)
+        client.reconnectCamera(test_camera)
+        client.disconnectCamera(test_camera)
+        client.setShutterTime(test_camera, 365.0)
+        client.setShutterTimeAutoOnce(test_camera)
+        client.getShutterTime(test_camera)
+        client.setWhiteBalance(test_camera, 0.2, 0.3, 0.5)
+        client.setWhiteBalanceAutoOnce(test_camera)
+        client.getWhiteBalance(test_camera)
+        client.setGain(test_camera, 20.0)
+        client.setGainAutoOnce(test_camera)
+        client.getGain(test_camera)
+        client.setFocus(test_camera, 100)
+        client.setFocusAutoOnce(test_camera)
+        client.getFocus(test_camera)
+        client.getGrabImageData(test_camera)
 
     except RpcError as e:
         print(f"Connection failed: \n{e}")

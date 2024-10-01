@@ -1,13 +1,13 @@
 import csv
-from datetime import datetime
 import os
 import shutil
 import threading
 import time
-from PIL import Image
-from virtual_camera_client import VirtualCameraClient
 import tkinter as tk
-from PIL import ImageTk
+from datetime import datetime
+
+from PIL import Image, ImageTk
+from virtual_camera_client import VirtualCameraClient
 
 CAMERA_RESOLUTION = (2592, 1944)
 WORLD_CAMERA = "world_camera"
@@ -67,11 +67,10 @@ class VirtualCameraUI:
             )
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
             image_name = f"{timestamp}.png"
-            print(f"image_name: {image_name}")
             image_path = os.path.join(
                 self._current_script_dir, "tmp", camera_name, image_name
             )
-            print(f"image_path: {image_path}")
+            # print(f"image_path: {image_path}")
 
             # Save image in a separate thread without blocking the UI
             save_thread = threading.Thread(target=save_image, args=(image, image_path))

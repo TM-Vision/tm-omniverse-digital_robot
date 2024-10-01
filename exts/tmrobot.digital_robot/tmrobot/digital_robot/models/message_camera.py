@@ -18,9 +18,10 @@ class CameraProperty(Enum):
     FOCAL_LENGTH = 4
 
 
-class ErrorMessage(Enum):
-    NONE = 0
-    API_NOT_FOUND = 1
+@dataclass
+class ErrorMessage:
+    API_NOT_FOUND = "API_NOT_FOUND"
+    TMFLOW_IP_NOT_FOUND = "is not one of the available TMFlow IPs"
 
 
 @dataclass

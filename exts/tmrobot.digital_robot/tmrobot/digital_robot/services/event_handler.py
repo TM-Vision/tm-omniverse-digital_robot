@@ -6,12 +6,9 @@
 # distributed, disclosed, or otherwise made available to any third party without the express written consent of    #
 # Techman.                                                                                                         #
 ####################################################################################################################
-from tmrobot.digital_robot.models.message_camera import (
-    CameraProperty,
-    MessageCamera,
-)
-from tmrobot.digital_robot.models.digital_camera import DigitalCamera
 import omni.kit.commands
+from tmrobot.digital_robot.models.digital_camera import DigitalCamera
+from tmrobot.digital_robot.models.message_camera import CameraProperty, MessageCamera
 
 
 class EventHandler:

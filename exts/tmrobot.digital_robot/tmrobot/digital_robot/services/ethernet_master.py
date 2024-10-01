@@ -7,8 +7,8 @@
 # Techman.                                                                                                         #
 ####################################################################################################################
 import asyncio
-import socket
 import re
+import socket
 
 
 class EthernetData:

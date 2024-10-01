@@ -6,60 +6,49 @@
 # distributed, disclosed, or otherwise made available to any third party without the express written consent of    #
 # Techman.                                                                                                         #
 ####################################################################################################################
-import gc
 import asyncio
+import gc
 import math
-import queue
-import socket
-from omni.isaac.core.robots.robot import Robot
-from omni.isaac.core.world.world import World
-from omni.isaac.core.utils.types import ArticulationAction
-from pxr import Sdf
-import threading
-import omni.ext
-import omni.ui as ui
-import weakref
-from omni.isaac.ui.element_wrappers import ScrollingWindow
-from omni.kit.menu.utils import MenuItemDescription, add_menu_items
-import numpy as np
-import omni.kit.commands
-from omni.isaac.sensor import Camera
-from omni.isaac.ui.menu import make_menu_item_description
-from omni.isaac.core.utils.stage import (
-    open_stage,
-)
-from omni.isaac.core.utils.viewports import (
-    set_camera_view,
-)
 import os
-import omni.kit.viewport.utility as vp_utils
-from omni.isaac.core.utils.stage import (
-    update_stage_async,
-)
-from omni.isaac.ui.ui_utils import (
-    btn_builder,
-    get_style,
-    setup_ui_headers,
-)
-import omni.replicator.core as rep  # type: ignore
-from tmrobot.digital_robot.services.virtual_camera_server import VirtualCameraServer
-from tmrobot.digital_robot.services.event_handler import EventHandler
-from tmrobot.digital_robot.services.ethernet_master import EthernetMaster
-from tmrobot.digital_robot.models.digital_camera import DigitalCamera
-from tmrobot.digital_robot.models.digital_robot import DigitalRobot
-
+import queue
 import random
-from dotenv import load_dotenv
-import omni.usd
+import socket
+import threading
+import weakref
 from typing import List
 
+import numpy as np
+import omni.ext
+import omni.kit.commands
+import omni.kit.viewport.utility as vp_utils
+import omni.replicator.core as rep  # type: ignore
+import omni.ui as ui
+import omni.usd
+from dotenv import load_dotenv
+from omni.isaac.core.robots.robot import Robot
+from omni.isaac.core.utils.stage import open_stage, update_stage_async
+from omni.isaac.core.utils.types import ArticulationAction
+from omni.isaac.core.utils.viewports import set_camera_view
+from omni.isaac.core.world.world import World
+from omni.isaac.sensor import Camera
+from omni.isaac.ui.element_wrappers import ScrollingWindow
+from omni.isaac.ui.menu import make_menu_item_description
+from omni.isaac.ui.ui_utils import btn_builder, get_style, setup_ui_headers
+from omni.kit.menu.utils import MenuItemDescription, add_menu_items
+from pxr import Sdf
+from tmrobot.digital_robot.models.digital_camera import DigitalCamera
+from tmrobot.digital_robot.models.digital_robot import DigitalRobot
+from tmrobot.digital_robot.services.ethernet_master import EthernetMaster
+from tmrobot.digital_robot.services.event_handler import EventHandler
+from tmrobot.digital_robot.services.virtual_camera_server import VirtualCameraServer
 
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
 env_path = os.path.join(current_script_dir, ".env")
 load_dotenv(env_path)
 
-DEV_IP = os.getenv("DEV_IP")
-TMFLOW_IP = os.getenv("TMFLOW_IP")
+VIRTUAL_CAMERA_SERVER_IP = os.getenv("VIRTUAL_CAMERA_SERVER_IP")
+TMFLOW_01_IP = os.getenv("TMFLOW_01_IP")
+DEVELOPER_MODE = os.getenv("DEVELOPER_MODE", "false").lower() in ("true", "True")
 EXTENSION_NAME = "TM Digital Robot"
 ACTION_INITIAL = "initial"
 ACTION_START_SERVICE = "Start Service"
@@ -83,8 +72,10 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
     def on_startup(self, ext_id):
 
-        print(f"DEV_IP: {DEV_IP}")
-        print(f"TMFLOW_IP: {TMFLOW_IP}")
+        print(f"DEVELOPER_MODE: {DEVELOPER_MODE}")
+        print(f"TMFLOW_01_IP: {TMFLOW_01_IP}")
+        print(f"VIRTUAL_CAMERA_SERVER_IP: {VIRTUAL_CAMERA_SERVER_IP}")
+
         self._world_settings = {
             "physics_dt": 1.0 / 1200.0,
             "rendering_dt": 1.0 / 60.0,
@@ -102,7 +93,7 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
         self._virtual_camera_server: VirtualCameraServer = None
         self._event_handler = EventHandler(self._dg_cameras)
         self._ext_id = ext_id
-        self._tmflow_ips = [TMFLOW_IP]
+        self._tmflow_ips = [TMFLOW_01_IP]
         self._ethernet_masters: List[EthernetMaster] = None
         self._ethernet_master_threads: List[threading.Thread] = None
 
@@ -369,7 +360,7 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
             open_stage(f"{current_directory}/scenes/default/default_world2.usd")
             omni.usd.get_context()
 
-            self._dg_cameras[DEV_IP] = []
+            self._dg_cameras[TMFLOW_01_IP] = []
 
             # Create a viewport camera
             world_camera = Camera(
@@ -395,12 +386,14 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
             dg_camera = DigitalCamera(world_camera, rgb_annotator)
             dg_camera.set_serial_number(camera_serial_number)
 
-            self._dg_cameras[DEV_IP].append(dg_camera)
+            self._dg_cameras[TMFLOW_01_IP].append(dg_camera)
 
             # Create a digital robot
             robot_01_name = "robot_01"
             om_robot1 = Robot(name=robot_01_name, prim_path=f"/World/{robot_01_name}")
-            dg_robot1 = DigitalRobot(DEV_IP, robot_01_name, om_robot1, rgb_annotator)
+            dg_robot1 = DigitalRobot(
+                TMFLOW_01_IP, robot_01_name, om_robot1, rgb_annotator
+            )
             self._dg_robots.append(dg_robot1)
             self._world.scene.add(om_robot1)
             await self._world.initialize_simulation_context_async()
@@ -426,7 +419,7 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
             robot_01_camera_01 = DigitalCamera(world_camera, rgb_annotator)
             robot_01_camera_01.set_serial_number(camera_serial_number)
 
-            self._dg_cameras[DEV_IP].append(robot_01_camera_01)
+            self._dg_cameras[TMFLOW_01_IP].append(robot_01_camera_01)
 
             vp_utils.get_active_viewport().set_active_camera(WORLD_CAMERA_PATH)
 
@@ -556,16 +549,13 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
         asyncio.ensure_future(_stop_service_async())
 
-    def _test_post_processing(self, val):
-        print("ChangeProperty: ", val)
-
     # For testing purposes
     def _test_camera(self):
         async def _test_camera_async():
             register_id = omni.kit.commands.register_callback(
                 "ChangeProperty",
                 omni.kit.commands.POST_DO_CALLBACK,
-                self._test_post_processing,
+                self._post_processing,
             )
 
             for i in range(100):
@@ -619,16 +609,26 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
         asyncio.ensure_future(_set_shutter_time_async())
 
-    def _set_gain(self, val=False):
+    def _post_processing(self, val):
+        print("callback_val: ", val)
+
+    def _set_gain(self):
         async def _set_gain_async():
-            await asyncio.sleep(0.01)
-            value = random.randint(50, 1600)
+
+            register_id = omni.kit.commands.register_callback(
+                "ChangeSetting",
+                omni.kit.commands.POST_DO_CALLBACK,
+                self._post_processing,
+            )
+
             omni.kit.commands.execute(
                 "ChangeSetting",
                 path="/rtx/post/tonemap/filmIso",
-                value=value,
-                prev=100.0,
+                value=88,
+                prev=None,
             )
+
+            omni.kit.commands.unregister_callback(register_id)
 
         asyncio.ensure_future(_set_gain_async())
 

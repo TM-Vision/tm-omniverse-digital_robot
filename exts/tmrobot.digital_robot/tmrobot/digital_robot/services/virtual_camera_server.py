@@ -6,33 +6,34 @@
 # distributed, disclosed, or otherwise made available to any third party without the express written consent of    #
 # Techman.                                                                                                         #
 ####################################################################################################################
-import sys
-import os
-import grpc.aio
 import asyncio
-from google.protobuf import empty_pb2
-from google.protobuf.json_format import MessageToJson
 import inspect
-import omni.replicator.core as rep  # type: ignore
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
+
+import grpc.aio
+import omni.replicator.core as rep  # type: ignore
+import tmrobot.digital_robot.modules.VirtualCameraAPI_pb2 as VirtualCameraAPI  # noqa
+
+# sys.path.append(os.path.join(os.path.dirname(__file__), "../modules"))
+import tmrobot.digital_robot.modules.VirtualCameraAPI_pb2_grpc as VirtualCameraAPI_pb2_grpc  # noqa
+from google.protobuf import empty_pb2
+from google.protobuf.json_format import MessageToJson
 from tmrobot.digital_robot.models.digital_camera import (
-    DigitalCamera,
     CameraType,
-    TriggerMode,
+    DigitalCamera,
     ImageType,
     PixelFormat,
+    TriggerMode,
 )
 from tmrobot.digital_robot.models.message_camera import (
     CameraProperty,
-    MessageCamera,
     ErrorMessage,
+    MessageCamera,
 )
 
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "../modules"))
-import tmrobot.digital_robot.modules.VirtualCameraAPI_pb2_grpc as VirtualCameraAPI_pb2_grpc  # noqa
-import tmrobot.digital_robot.modules.VirtualCameraAPI_pb2 as VirtualCameraAPI  # noqa
+DEVELOPER_MODE = os.getenv("DEVELOPER_MODE", "false").lower() in ("true", "True")
 
 
 class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
@@ -71,7 +72,15 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         self.device_list = []
+
         for dg_camera in self._dg_cameras[client_ip]:
             device = VirtualCameraAPI.CAMERA_ID(
                 Type=CameraType.VIRTUAL_CAM.name,
@@ -93,8 +102,8 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
         print(f"request:\n{MessageToJson(request)}")
-        context.set_code(grpc.StatusCode.NOT_FOUND)
-        context.set_details(ErrorMessage.API_NOT_FOUND.name)
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details(ErrorMessage.API_NOT_FOUND)
         print("response:\n" + MessageToJson(empty_pb2.Empty()))
         return empty_pb2.Empty()
 
@@ -103,8 +112,8 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
         print(f"request:\n{MessageToJson(request)}")
-        context.set_code(grpc.StatusCode.NOT_FOUND)
-        context.set_details(ErrorMessage.API_NOT_FOUND.name)
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details(ErrorMessage.API_NOT_FOUND)
         print("response:\n" + MessageToJson(empty_pb2.Empty()))
         return empty_pb2.Empty()
 
@@ -113,8 +122,8 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
         print(f"request:\n{MessageToJson(request)}")
-        context.set_code(grpc.StatusCode.NOT_FOUND)
-        context.set_details(ErrorMessage.API_NOT_FOUND.name)
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details(ErrorMessage.API_NOT_FOUND)
         print("response:\n" + MessageToJson(empty_pb2.Empty()))
         return empty_pb2.Empty()
 
@@ -131,6 +140,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
@@ -159,7 +175,15 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
+
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
         )
@@ -178,7 +202,15 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
+
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
         )
@@ -197,6 +229,7 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
         print(f"request:\n{MessageToJson(request)}")
 
         # TODO: to be implemented
@@ -210,6 +243,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -233,7 +273,15 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
+
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
         )
@@ -252,6 +300,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -274,6 +329,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -296,7 +358,15 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
+
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
         )
@@ -323,6 +393,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -350,6 +427,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -372,6 +456,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
         dg_camera_index = self.get_camera_index_by_serial(
             request.SerialNumber, self._dg_cameras[client_ip]
@@ -395,6 +486,13 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = self._print_header(
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
+
+        if client_ip not in self._dg_cameras:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details(f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            print("message: " + f"{client_ip} {ErrorMessage.TMFLOW_IP_NOT_FOUND}")
+            return empty_pb2.Empty()
+
         print(f"request:\n{MessageToJson(request)}")
 
         message = MessageCamera()
@@ -423,10 +521,8 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
             inspect.getframeinfo(inspect.currentframe()).function, context
         )
         print(f"request:\n{MessageToJson(request)}")
-
-        context.set_code(grpc.StatusCode.NOT_FOUND)
-        context.set_details(ErrorMessage.API_NOT_FOUND.name)
-
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details(ErrorMessage.API_NOT_FOUND)
         print("response:\n" + MessageToJson(empty_pb2.Empty()))
         return empty_pb2.Empty()
 
@@ -436,9 +532,14 @@ class VirtualCameraServer(VirtualCameraAPI_pb2_grpc.VirtualCameraApiServicer):
         client_ip = peer.split(":")[1] if peer.startswith("ipv4:") else "127.0.0.1"
 
         print("==========================================")
-        print(f"client: {client_ip}")
-        print(f"method: {method}")
+        if DEVELOPER_MODE:
+            tmflow_ip = next(iter(self._dg_cameras))
+            print(f"client: {client_ip} -> {tmflow_ip}")
+            client_ip = tmflow_ip
+        else:
+            print(f"client: {client_ip}")
 
+        print(f"method: {method}")
         return client_ip
 
     def _print_execution_time(self, start_time):
