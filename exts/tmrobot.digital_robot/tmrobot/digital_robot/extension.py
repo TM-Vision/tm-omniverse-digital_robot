@@ -82,8 +82,6 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
             "stage_units_in_meters": 1.0,
         }
         self._world = World(**self._world_settings)
-
-        self._virtual_camera_server_instance = None
         self._actions = {}
         self._dg_robots: List[DigitalRobot] = []
         self._dg_cameras: dict[str, list[DigitalCamera]] = {}  # key: tmflow ip
@@ -357,7 +355,7 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
             current_file_path = os.path.abspath(__file__)
             current_directory = os.path.dirname(current_file_path)
 
-            open_stage(f"{current_directory}/scenes/default/default_world2.usd")
+            open_stage(f"{current_directory}/scenes/default/default_world.usd")
             omni.usd.get_context()
 
             self._dg_cameras[TMFLOW_01_IP] = []
@@ -451,7 +449,7 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
     def _start_service(self):
         self._change_action_mode(ACTION_STOP_SERVICE)
         self._virtual_camera_server = VirtualCameraServer(
-            self._set_queue, self._dg_cameras
+            self._set_queue, self._dg_cameras, DEVELOPER_MODE
         )
         # Check if ethernet slave is available
         for tmflow_ip in self._tmflow_ips:
