@@ -8,6 +8,7 @@
 ####################################################################################################################
 import asyncio
 import gc
+import logging
 import math
 import os
 import queue
@@ -42,6 +43,7 @@ from tmrobot.digital_robot.services.ethernet_master import EthernetMaster
 from tmrobot.digital_robot.services.event_handler import EventHandler
 from tmrobot.digital_robot.services.virtual_camera_server import VirtualCameraServer
 
+logger = logging.getLogger(__name__)
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
 env_path = os.path.join(current_script_dir, ".env")
 load_dotenv(env_path)
@@ -72,9 +74,9 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
     def on_startup(self, ext_id):
 
-        print(f"DEVELOPER_MODE: {DEVELOPER_MODE}")
-        print(f"TMFLOW_01_IP: {TMFLOW_01_IP}")
-        print(f"VIRTUAL_CAMERA_SERVER_IP: {VIRTUAL_CAMERA_SERVER_IP}")
+        logger.info(f"DEVELOPER_MODE: {DEVELOPER_MODE}")
+        logger.info(f"TMFLOW_01_IP: {TMFLOW_01_IP}")
+        logger.info(f"VIRTUAL_CAMERA_SERVER_IP: {VIRTUAL_CAMERA_SERVER_IP}")
 
         self._world_settings = {
             "physics_dt": 1.0 / 1200.0,
@@ -135,6 +137,12 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
         except Exception:
             print("Services stopped")
+
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+            handler.close()
+
+        logger.handlers.clear()
 
         omni.usd.get_context().new_stage()
         gc.collect()
