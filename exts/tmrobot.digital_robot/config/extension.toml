@@ -1,5 +1,5 @@
 [core]
-order = 100
+order = 10000
 
 [package]
 # Semantic Versioning is used: https://semver.org/
