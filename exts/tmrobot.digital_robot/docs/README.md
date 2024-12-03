@@ -1,4 +1,4 @@
-# Python Extension Example [tmrobot.digital_robot]
+# TM Digital Robot Extension [tmrobot.digital_robot]
 
-This is an example of pure python Kit extension. It is intended to be copied and serve as a template to create new extensions.
+Users can now easily learn TMflow arm control and vision applications within the virtual environment of Omniverse, without the need for a physical robot arm. The complex communication between TMRobot and Omniverse has been simplified with pre-built Monition and Vision interfaces, allowing customers to avoid handling intricate integration tasks. Additionally, the application has been packaged as an Omniverse Extension, making it easy for users to search, download, and activate the service.
 
