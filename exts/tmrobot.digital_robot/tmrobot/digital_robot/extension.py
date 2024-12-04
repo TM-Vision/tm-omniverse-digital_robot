@@ -151,16 +151,14 @@ class TmrobotDigital_robotExtension(omni.ext.IExt):
 
     def _on_start_service(self):
         self.initialize()
-
         self._ext_ui.change_action_mode(const.BUTTON_STOP_SERVICE)
         self._ext_ui.enabled_robot_settings(False)
-
         self._ext_ui._on_save_scene()
         audio = omni.usd.audio.get_stage_audio_interface()
         audio._get_invalid_streamer_id()
         audio.stop_all_sounds()
+
         self._simulation_count = 0
-        # self._motion_queue.queue.clear()
 
         if self._world.stage.GetPrimAtPath(
             Sdf.Path(self._default_workpieces_prim_path)

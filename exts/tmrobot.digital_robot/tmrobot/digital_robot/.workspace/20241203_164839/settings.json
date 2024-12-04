@@ -1,0 +1,94 @@
+{
+    "usd_path": "/home/darien/projects/tm-digital-robot/exts/tmrobot.digital_robot/tmrobot/digital_robot/.workspace/20241203_164839/main_scene.usd",
+    "setting_path": "/home/darien/projects/tm-digital-robot/exts/tmrobot.digital_robot/tmrobot/digital_robot/.workspace/20241203_164839/settings.json",
+    "robots_setting": {
+        "Robot01": {
+            "activated": true,
+            "name": "Robot01",
+            "ip": "192.168.56.101",
+            "model": "TM12S",
+            "cameras_activated": {
+                "EIH": true,
+                "EXT01": false,
+                "EXT02": true
+            },
+            "ext01_resolution_value": [
+                2592,
+                1944
+            ],
+            "ext02_resolution_value": [
+                2592,
+                1944
+            ],
+            "robot_prim_path": "/World/Robot01/tm12s",
+            "ext01_prim_path": "/World/Robot01/ext01_2d_camera",
+            "ext02_prim_path": "/World/Robot01/ext02_2d_camera"
+        },
+        "Robot02": {
+            "activated": false,
+            "name": "Robot02",
+            "ip": "",
+            "model": "",
+            "cameras_activated": {
+                "EIH": false,
+                "EXT01": false,
+                "EXT02": false
+            },
+            "ext01_resolution_value": [
+                0,
+                0
+            ],
+            "ext02_resolution_value": [
+                0,
+                0
+            ],
+            "robot_prim_path": "",
+            "ext01_prim_path": "",
+            "ext02_prim_path": ""
+        },
+        "Robot03": {
+            "activated": false,
+            "name": "Robot03",
+            "ip": "",
+            "model": "",
+            "cameras_activated": {
+                "EIH": false,
+                "EXT01": false,
+                "EXT02": false
+            },
+            "ext01_resolution_value": [
+                0,
+                0
+            ],
+            "ext02_resolution_value": [
+                0,
+                0
+            ],
+            "robot_prim_path": "",
+            "ext01_prim_path": "",
+            "ext02_prim_path": ""
+        },
+        "Robot04": {
+            "activated": false,
+            "name": "Robot04",
+            "ip": "",
+            "model": "",
+            "cameras_activated": {
+                "EIH": false,
+                "EXT01": false,
+                "EXT02": false
+            },
+            "ext01_resolution_value": [
+                0,
+                0
+            ],
+            "ext02_resolution_value": [
+                0,
+                0
+            ],
+            "robot_prim_path": "",
+            "ext01_prim_path": "",
+            "ext02_prim_path": ""
+        }
+    }
+}
