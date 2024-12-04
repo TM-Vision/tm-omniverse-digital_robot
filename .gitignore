@@ -1,0 +1,19 @@
+# all folders starting with _ are local
+_*/
+
+.DS_Store
+**/.vscode/ipch
+
+# byte-compiled python files
+*.py[cod]
+/app
+/env_omniverse
+/.vscode_template
+.workspace/
+.tmp/
+*.env
+*.csv
+*.cpp
+*.so
+*.o
+.last_settings_cache.txt
